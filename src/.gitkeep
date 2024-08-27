@@ -1,0 +1,39 @@
+# ExecutionEngine
+
+## Description
+
+Welcome to the Manufacturing Execution System (MES)!
+
+Our MES is built on a powerful workflow and rule engine, providing a flexible and efficient solution for managing manufacturing processes. With our system, you can streamline your production operations, improve productivity, and ensure consistent quality.
+
+### Key Features
+
+- Workflow Management: Define and manage complex manufacturing workflows, including task dependencies, approvals, and notifications.
+- Rule Engine: Implement business rules to automate decision-making and enforce process compliance.
+- Real-time Monitoring: Gain real-time visibility into production activities, track progress, and identify bottlenecks.
+- Data Analytics: Analyze production data to identify trends, optimize processes, and make data-driven decisions.
+- Integration Capabilities: Seamlessly integrate with existing systems, such as ERP and CRM, to streamline data exchange and improve overall efficiency.
+
+### Getting Started
+
+To get started with our MES, follow these steps:
+
+1. Clone the repository: `git clone https://github.com/guillaumeme/ExecutionEngine.git`
+2. Install the required dependencies: `dotnet restore`
+3. Run the application: `TODO`
+
+For detailed instructions, please refer to the [Installation Guide](./docs/installation.md).
+
+### Contributing
+
+We welcome contributions from the community! If you'd like to contribute to our MES, please follow our [Contribution Guidelines](./CONTRIBUTING.md).
+
+### License
+
+This project is licensed under the [MIT License](./LICENSE).
+
+### Contact
+
+If you have any questions or need support, please reach out to our team at `support@example.com`.
+
+Let's revolutionize manufacturing together!
