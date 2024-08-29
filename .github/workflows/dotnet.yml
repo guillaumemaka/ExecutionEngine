@@ -1,0 +1,124 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Build and Test .NET projects
+
+on:
+  push:
+    branches: ["main"]
+    paths: ["src/**"]
+  pull_request:
+    branches: ["main"]
+    types: [opened, synchronize, reopened, closed]
+    paths: ["src/**"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: ./global.json
+
+      - name: Cache NuGet Packages
+        id: nuget-packages
+        uses: actions/cache@v3
+        env:
+          cache-name: nuget-package-cache
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-${{ env.cache-name }}
+
+      - name: Workload install
+        run: dotnet workload restore
+    
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build TagzApp.Blazor --no-restore
+      - name: Unit Test
+        run: dotnet test --verbosity normal
+        working-directory: ./src/TagzApp.UnitTest
+
+  #playwright:
+    # if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    # name: "Playwright Tests"
+    # runs-on: ubuntu-latest
+    # defaults:
+    #   run:
+    #     working-directory: ./src/TagzApp.WebTest
+    # timeout-minutes: 10
+    # container:
+    #   image: mcr.microsoft.com/playwright/dotnet:v1.37.1-jammy
+    #   options: --ipc=host
+    # steps:
+    #   - uses: actions/checkout@v3
+    #   - name: Setup dotnet
+    #     uses: actions/setup-dotnet@v3
+    #     with:
+    #       global-json-file: ./global.json
+    #   - run: dotnet build
+    #   - name: Execute Playwright tests
+    #     env:
+    #       TestHostStartDelay: 1000
+    #     run: dotnet test --no-build
+  image:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository_owner == 'FritzAndFriends')
+    name: "Create docker image for Web"
+    runs-on: ubuntu-latest
+    needs: [build]
+    defaults:
+      run:
+        working-directory: ./src
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Docker Login
+        uses: docker/login-action@v2.2.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+
+      - name: Version stamping
+        id: nbgv_version
+        uses: dotnet/nbgv@v0.4
+        with:
+          setAllVars: true
+  
+      - name: Cache NuGet Packages
+        id: nuget-packages
+        uses: actions/cache@v3
+        env:
+          cache-name: nuget-package-cache
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-${{ env.cache-name }}
+  
+      - name: Workload install
+        run: dotnet workload restore
+
+      - name: Restore
+        run: dotnet restore
+    
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+        working-directory: ./src/TagzApp.Blazor
+  
+      - name: Publish
+        run: dotnet publish --os linux --arch x64 -t:PublishContainer /p:ContainerImageTags='"${{ steps.nbgv_version.outputs.Version }};latest"' /p:ContainerRegistry=ghcr.io
+        working-directory: ./src/TagzApp.Blazor
