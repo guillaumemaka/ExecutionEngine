@@ -21,4 +21,3 @@ Get started with our Manufacturing Execution System today and take control of yo
 ## Contribution
 
 Contribution is appreciated, see [CONTRIBUTION GUIDELINE](./CONTRIBUTING.md)
-
